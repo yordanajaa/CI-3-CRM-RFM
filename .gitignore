@@ -35,6 +35,7 @@ phploy.ini
 
 /vendor/*
 crm/
+.agents/
 
 # IDE Files
 #-------------------------
