@@ -1,0 +1,397 @@
+function show_alert(message, type) {
+    var alertType = type || 'info';
+    if (alertType === 'error') alertType = 'warning';
+    if (typeof toastr !== 'undefined' && typeof toastr[alertType] === 'function') {
+        toastr[alertType](message);
+    } else if (typeof swal === 'function') {
+        swal('Pemberitahuan', message, alertType);
+    } else {
+        alert(message);
+    }
+}
+
+function set_notif_message(message, type) {
+    show_alert(message, type);
+}
+
+function showPopup(url, callback) {
+    if (url == false) {
+      $('#modalPopUp').modal('hide')
+
+    } else {
+      $('#modalPopUp').modal('show')
+     $('#modalPopUp').find('.modal-body').html(`
+      <center>
+      <img src="`+BASE_URL+`/asset/img/loading-spin-primary.svg" style="width:50px; width:50px;">
+      </center>
+      `);
+      $('#modalPopUp').find('.modal-body').load(url, function(){
+       callback()
+      });
+    }
+
+  }
+
+jQuery.expr[':'].regex = function(elem, index, match) {
+    var matchParams = match[3].split(','),
+        validLabels = /^(data|css):/,
+        attr = {
+            method: matchParams[0].match(validLabels) ? 
+                        matchParams[0].split(':')[0] : 'attr',
+            property: matchParams.shift().replace(validLabels,'')
+        },
+        regexFlags = 'ig',
+        regex = new RegExp(matchParams.join('').replace(/^\s+|\s+$/g,''), regexFlags);
+    return regex.test(jQuery(elem)[attr.method](attr.property));
+}
+
+  function resetForm() {
+      $('form input[type = text], form input[type = email], form input[type = number], form input[type = password], form textarea').val('');
+      $('form textarea').text('');
+      $('.data_file').val('');
+      $('input.flat-red').each(function(index, element) {
+          $(element).iCheck('uncheck');
+      });
+      $('.refresh-captcha').trigger('click');
+  }
+  function getUnixId() {
+      return time_in_ms = Date.now();
+  }
+  var config_choosen = {
+      '.chosen-select': {},
+      '.chosen-select-deselect': {
+          allow_single_deselect: true
+      },
+      '.chosen-select-no-single': {
+          disable_search_threshold: 10
+      },
+      '.chosen-select-no-results': {
+          no_results_text: 'Oops, nothing found!'
+      },
+      '.chosen-select-width': {
+          width: "95%"
+      }
+  }
+
+  function getStyle(target, css_to_find) {
+    var style = target.attr('style').trim().split(';');
+    var selected = '';
+    $.each(style, function(index, val) {
+      css = val.trim().split(':');
+      css_name = typeof css[0] != 'undefined' ? css[0].trim() : false;
+      css_val = typeof css[1] != 'undefined' ? css[1].trim() : false;
+
+      if (css_name) {
+        if (css_name == css_to_find) {
+          selected = css_val;
+        }
+      }
+    });
+
+    return selected;
+  }
+
+  function goUrl(url) {
+    document.location = BASE_URL + url;
+  }
+
+  $(document).ready(function() {
+
+
+      $('a, button, input[type=submit], .tip').tooltip();
+      $('.fancybox').fancybox();
+
+      toastr.options = {
+          "closeButton": true,
+          "debug": false,
+          "newestOnTop": false,
+          "preventDuplicates": true,
+          "progressBar": false,
+          "rtl": false,
+          "positionClass": "toast-top-center",
+          "onclick": null,
+          "showDuration": 300,
+          "hideDuration": 1000,
+          "timeOut": 5000,
+          "extendedTimeOut": 1000,
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+      }
+
+      $('.demo-version, .demo-version a').click(function() {
+          toastr['warning']("Sorry, demo version can't be accessed this!", "Warning!");
+
+          return false;
+      }); /*end demo version click*/
+
+      /*add activer menu side bar*/
+      var i = $('.sidebar-menu li.active').parents('li').addClass('active');
+
+
+      if (typeof $('form input')[1] != 'undefined') {
+          $('form input')[1].focus();
+      }
+
+      /*show loading*/
+      $.fn.loader = function(opsi) {
+          $(this).html('<span class="loading loading-hide pull-right padding-10"><img src="' + BASE_URL + 'asset/img/loading-spin-primary.svg"> <i>Loading, Submitting Data</i></span>');
+      };
+
+      /*print message*/
+      $.fn.printMessage = function(opsi) {
+          var opsi = $.extend({
+              type: 'success',
+              message: 'Success',
+              timeout: 500000
+          }, opsi);
+
+          $(this).hide();
+          $(this).html(' <div class="col-md-12 message-alert" ><div class="callout callout-' + opsi.type + '"><h4>' + opsi.type + '!  <a href="#" class="close pull-right" >&times;</a></h4>' + opsi.message + '</div></div>');
+          $(this).slideDown('slow');
+          // Run the effect
+          setTimeout(function() {
+              $('.message-alert').slideUp('slow');
+          }, opsi.timeout);
+
+          var parentElem  = $(this);
+
+          $(this).find('.message-alert .close').click(function(event) {
+            event.preventDefault();
+            parentElem.html('');
+          });
+      };
+
+      $.fn.btnSpinner = function(option) {
+
+
+        var toggle = typeof option == 'undefined' ? 'show' : option; 
+
+        if (toggle == 'show') {
+          if ($(this).find('.fa-spin').length == 0) {
+            $(this).addClass('disabled');
+            $(this).prepend(`<i class="fa fa-spin fa-refresh text-danger"></i> `);
+          }
+        } else {
+          $(this).removeClass('disabled');
+          $(this).find('.fa-spin').remove();
+        }
+      };
+
+      /*replace all string*/
+      String.prototype.replaceAll = function(search, replacement) {
+          var target = this;
+          return target.split(search).join(replacement);
+      };
+
+      /*show  hide password*/
+      $('.input-password').each(function(index, el) {
+          var eye = $(this).parent().parent().find('.eye');
+          $(this).find('.show-password').mousedown(function() {
+              $(this).parent().parent().find('.password').attr('type', 'text');
+              eye.addClass('fa-eye-slash');
+              eye.removeClass('fa-eye');
+          });
+          $(this).find('.show-password').mouseup(function() {
+              $(this).parent().parent().find('.password').attr('type', 'password');
+              eye.removeClass('fa-eye-slash');
+              eye.addClass('fa-eye');
+          });
+      });
+
+      $('.datepicker').datetimepicker({
+          timepicker: false,
+          formatDate: 'Y.m.d',
+
+      });
+
+      $('.datepicker').inputmask({
+          mask: "y-1-2",
+          placeholder: "yyyy-mm-dd",
+          leapday: "-02-29",
+          separator: "-",
+          alias: "yyyy/mm/dd"
+      });
+
+      $('.datetimepicker').inputmask({
+          mask: "y-1-2 h:s",
+          placeholder: "yyyy-mm-dd hh:mm",
+          leapday: "-02-29",
+          separator: "-",
+          alias: "yyyy/mm/dd"
+      });
+
+      $('.datetimepicker').datetimepicker({
+          formatTime: 'H:i',
+          formatDate: 'yyyy-mm-dd hh:ii',
+      });
+
+      $('.timepicker').inputmask({
+          mask: "h:s",
+          placeholder: "hh:mm",
+          leapday: "-02-29",
+          separator: "-",
+          alias: "yyyy/mm/dd"
+      });
+
+      $('.timepicker').datetimepicker({
+          datepicker: false,
+          format: 'H:i',
+          step: 5
+      });
+
+      var config = {
+          '.chosen-select': {
+              search_contains: true,
+              search_contains: true,
+              parser_config: {
+                  copy_data_attributes: true
+              }
+          },
+          '.chosen-select-deselect': {
+              allow_single_deselect: true,
+              search_contains: true,
+              parser_config: {
+                  copy_data_attributes: true
+              }
+          },
+          '.chosen-select-no-single': {
+              disable_search_threshold: 10
+          },
+          '.chosen-select-no-results': {
+              no_results_text: 'Oops, nothing found!'
+          },
+          '.chosen-select-width': {
+              width: "95%"
+          }
+      }
+      for (var selector in config) {
+          $(selector).chosen(config[selector]);
+      }
+      //Flat red color scheme for iCheck
+      $('input[type="radio"].flat-red').iCheck({
+          checkboxClass: 'icheckbox_minimal-red',
+          radioClass: 'iradio_minimal-red'
+      });
+
+
+      $('a[data-toggle="tab"].tab_animation').on('shown.bs.tab', function (e) {   
+          var target = $(this).attr('href');
+
+          $(target).css('top','-'+$(window).height()+'px');   
+          var top = $(target).offset().left;
+          $(target).css({top:top}).animate({"top":"0px"}, {
+            duration: 'slow',
+            specialEasing: {
+              height: "easeInOutQuart"
+            }
+          }
+        );
+      });
+
+   
+      $('.popup-view').click(function(event) {
+        event.preventDefault();
+        
+        var url = $(this).attr('href');
+        showPopup(url, function(){
+           $('#modalPopUp').find('#btn_edit, #btn_back').hide();
+          $('#modalPopUp').find('.col-md-7').removeClass('col-md-7');
+        });
+      });
+
+
+  });
+
+/* Hardware / USB Barcode Scanner Auto-Detection Listener */
+(function() {
+    var barcodeBuffer = '';
+    var lastKeyTime = 0;
+
+    $(document).on('keypress', function(e) {
+        // If typing inside an input/textarea, do not capture unless specified
+        if ($(e.target).is('input[type="text"], textarea') && !$(e.target).hasClass('barcode-input')) {
+            return;
+        }
+
+        var currentTime = new Date().getTime();
+        if (currentTime - lastKeyTime > 100) {
+            barcodeBuffer = '';
+        }
+        lastKeyTime = currentTime;
+
+        if (e.which === 13) {
+            if (barcodeBuffer.length >= 3) {
+                e.preventDefault();
+                var code = barcodeBuffer.trim();
+                console.log('Barcode Scanned:', code);
+                $(document).trigger('barcodeScanned', [code]);
+
+                var $target = $('.barcode-input:focus, .produk-select:last');
+                if ($target.length) {
+                    $target.find('option').each(function() {
+                        if ($(this).text().indexOf(code) !== -1 || $(this).val() == code) {
+                            $target.val($(this).val()).trigger('change').trigger('chosen:updated');
+                        }
+                    });
+                }
+            }
+            barcodeBuffer = '';
+        } else {
+            barcodeBuffer += String.fromCharCode(e.which);
+        }
+    });
+})();
+
+/* Global Modal Backdrop Fix: Append modal to body to prevent z-index blocking */
+$(document).on('show.bs.modal', '.modal', function () {
+    if (!$(this).parent().is('body')) {
+        $(this).appendTo('body');
+    }
+});
+
+/* Global Auto-Hide Datepicker on Scroll to prevent hanging/floating popup bug */
+(function() {
+    function autoHideDatepickers(e) {
+        if (e && e.target && (e.target.id === 'ui-datepicker-div' || (window.jQuery && window.jQuery(e.target).closest('#ui-datepicker-div, .datepicker-dropdown').length))) {
+            return;
+        }
+        if (window.jQuery) {
+            var $ = window.jQuery;
+            if ($.datepicker && typeof $.datepicker._hideDatepicker === 'function') {
+                try { $.datepicker._hideDatepicker(); } catch(err){}
+            }
+        }
+        var uiDiv = document.getElementById('ui-datepicker-div');
+        if (uiDiv) { uiDiv.style.display = 'none'; }
+        var bsPickers = document.querySelectorAll('.datepicker-dropdown');
+        bsPickers.forEach(function(el) { el.style.display = 'none'; });
+    }
+
+    window.addEventListener('scroll', autoHideDatepickers, true);
+
+    // AdminLTE fixed layout: .content-wrapper is the scrolling container, bind directly
+    document.addEventListener('DOMContentLoaded', function() {
+        var cw = document.querySelector('.content-wrapper');
+        if (cw) { cw.addEventListener('scroll', autoHideDatepickers, false); }
+    });
+})();
+
+    /* Global jQuery UI Datepicker Indonesian Localization & Format Defaults (dd/mm/yy) */
+    if (window.jQuery && window.jQuery.datepicker) {
+        window.jQuery.datepicker.setDefaults({
+            dateFormat: 'dd/mm/yy',
+            firstDay: 1,
+            isRTL: false,
+            showMonthAfterYear: false,
+            yearSuffix: '',
+            monthNames: ['Januari','Februari','Maret','April','Mei','Juni',
+            'Juli','Agustus','September','Oktober','November','Desember'],
+            monthNamesShort: ['Jan','Feb','Mar','Apr','Mei','Jun',
+            'Jul','Agu','Sep','Okt','Nov','Des'],
+            dayNames: ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'],
+            dayNamesShort: ['Min','Sen','Sel','Rab','Kam','Jum','Sab'],
+            dayNamesMin: ['Mg','Sn','Sl','Rb','Km','Jm','Sb']
+        });
+    }
